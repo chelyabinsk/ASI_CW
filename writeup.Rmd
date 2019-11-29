@@ -1,0 +1,21 @@
+---
+title: "project"
+author: "da best group"
+date: "29/11/2019"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+
+Maximum log-likelihood value is -229.082725415335
+$\theta_1=-1.7200385547829$ and $\theta_2=1.5633363290673$
+Estimate of the var-covar is 
+             [,1]         [,2]
+[1,] 0.0010950811 0.0003872932
+[2,] 0.0003872932 0.0002617509
