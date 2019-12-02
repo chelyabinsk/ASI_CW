@@ -12,7 +12,7 @@ L <- s_data$length
 #pdf <- deriv(cdf,c("y"),function.arg=c("y","k","sigma","L","nu","b"))
 
 pdf <- function(y,k,sigma,L,nu,b){
-  -(1/b)*(1/(sigma*L^nu))*(y/(sigma*L^nu))^(1/b-1)*(1+(1/k)*(y/(sigma*L^nu))^(1/b))^(-k-1)
+  (1/b)*(1/(sigma*L^nu))*(y/(sigma*L^nu))^(1/b-1)*(1+(1/k)*(y/(sigma*L^nu))^(1/b))^(-k-1)
 }
 
 nll <- function(theta,y,L){
@@ -73,14 +73,16 @@ while(counter < 10){
   # when that happens R quits the loop. 
   # Instead, make R pick another (hopefully) better starting point
   if(m1$value < max_ll){
+    if(m1$value <= 0) next
     counter = 1
-    th <- m1$par
+    th <- m1
     max_ll <- m1$value
     print(c(counter,m1$value,m1$par))
   }else if(round(m1$value,8) == round(max_ll,8)){
     counter = counter + 1
     print(c(counter,max_ll,m1$par))
   }
+  print(c(counter,th$value))
 }
 
 
@@ -88,10 +90,10 @@ while(counter < 10){
 
 
 # Plot the data
-b <- exp(th[1])
-sigma <- exp(th[2])
-k <- exp(th[3])
-nu <- th[4]
+b <- exp(th$par[1])
+sigma <- exp(th$par[2])
+k <- exp(th$par[3])
+nu <- th$par[4]
 k_ <- -1/k
 c <-  1/b
 
@@ -102,7 +104,7 @@ for(i in unique(s_data$length))
 {
   lambda <- sigma*i^nu
   m <- quantile(s_data$strength[s_data$length==i],seq(1,0,length.out = 100))
-  y_ <- (1-k_*(xx/lambda))^(1/k_)
+  y_ <- (1+(1/k_)*(xx/(sigma*i^(nu)))^(1/b))^(-k_)
   if(i==1){
     plot(xx,y_,type="l",col=col_list[loop_count],xlab="y (Stress in giga-pascals)",ylab=bquote(S[L](y)),main="Visual validation of the model")
     points(as.vector(m),seq(0,1,length.out = 100),col=col_list[loop_count])
