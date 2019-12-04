@@ -1,7 +1,4 @@
 set.seed(1230)  # Reproducibility
-
-library(mvtnorm)
-
 s_data <-
   read.table(url("http://people.bath.ac.uk/kai21/ASI/CW2019/strength.txt"),header = TRUE)
 
@@ -60,13 +57,13 @@ loop_count <- 1  # Counter for the loop
 for(i in unique(s_data$length))
 {
   m <- quantile(s_data$strength[s_data$length==i],seq(1,0,length.out = 100))
-  y <- exp(-i*(xx/sigma)^(1/b))
+  y_ <- exp(-i*(xx/sigma)^(1/b))
   if(i==1){
-    plot(xx,y,type="l",col=col_list[loop_count],xlab="y (Stress in giga-pascals)",ylab=bquote(S[L](y)),main="Visual validation of the model")
+    plot(xx,y_,type="l",col=col_list[loop_count],xlab="y (Stress in giga-pascals)",ylab=bquote(S[L](y)),main="Visual validation of the model")
     points(as.vector(m),seq(0,1,length.out = 100),col=col_list[loop_count])
   }
   else{
-    lines(xx,y,type="l",col=col_list[loop_count])
+    lines(xx,y_,type="l",col=col_list[loop_count])
     points(as.vector(m),seq(0,1,length.out = 100),col=col_list[loop_count])
   }
   loop_count <- loop_count + 1
@@ -74,19 +71,3 @@ for(i in unique(s_data$length))
 
 legend('topright',c('Model','Data'),lty=c(1,NA),pch=c(NA,'o'),bg='white',ncol=1,col=c("black"))
 legend('topleft',c('Length = 1mm','Length = 10mm','Length = 20mm','Length = 50mm'),pch=15,bg='white',ncol=1,col=col_list)
-
-
-#lines(xx,rep(0.5,100))
-#lines(xx,rep(0.25,100))
-#lines(xx,rep(0.75,100))
-#lines(rep(m[2],100),seq(0,0.5,length.out = 100))
-#lines(rep(m[1],100),seq(0,0.75,length.out = 100))
-#lines(rep(m[3],100),seq(0,0.25,length.out = 100))
-
-
-#library(survival)
-
-#fit.surv<-survreg(Surv(strength) ~length,data=s_data, dist="weibull")
-#summary(fit.surv)
-#b_ <- 1/fit.surv$scale
-#a_ <- exp(coef(fit.surv))
