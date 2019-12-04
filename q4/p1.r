@@ -1,15 +1,14 @@
 set.seed(2)
+
+# Hide errors and warnings
+options(warn=-1)
+options(error=-1)
+
 s_data<-
   read.table(url("http://people.bath.ac.uk/kai21/ASI/CW2019/strength.txt"),header = TRUE)
-library(mvtnorm)
-library(hydroApps)
-#library(CoSMoS)
 
 y <- s_data$strength
 L <- s_data$length
-
-#cdf <- expression(1- ((1+(1/k)*(y/(sigma*L^nu))^(1/b))^(-k)) )
-#pdf <- deriv(cdf,c("y"),function.arg=c("y","k","sigma","L","nu","b"))
 
 pdf <- function(y,k,sigma,L,nu,b){
   (1/b)*(1/(sigma*L^nu))*(y/(sigma*L^nu))^(1/b-1)*(1+(1/k)*(y/(sigma*L^nu))^(1/b))^(-k-1)
@@ -22,31 +21,9 @@ nll <- function(theta,y,L){
   nu <- theta[4]
   lambda <- sigma*L^nu
   -1/k -> k
-  c <-  1/b
-  #print(c(lambda,k,c))
-  #print(b)
-  #-sum(log(dBurrXII(y,lambda,k,c)))
-  #probs <- dBurrXII(y,lambda,k,c)
-  #probs <- replace(probs,probs>1,1)
-  #-sum(probs)
   res <- pdf(y,k,sigma,L,nu,b)
-  #print(res)
-  #-sum(log(attr(res,"gradient")))
   -sum(log(res))
 }
-
-#lambda = 1.514316e-03
-#k = -6.977443e-19
-#c = 6.628443e-01
-
-#lambda = 1.574455e-29
-#k = -3.919489e-36
-#c = 6.392594e-01
-
-#dBurrXII(y,lambda,k,c)
-#(1-k*(y[256]/lambda)^c)^(1/k)
-
-nll(c(1,1,1,1),y[2],L[2])
 
 expr <- expression( 
   -log(- exp(th3) *(1+ (1/exp(th3))*(y/(exp(th2)*L^(th4)))^(exp(-th1)))^(-exp(th3)-1) +
@@ -68,12 +45,14 @@ th <- c(0,0,0,0)
 while(counter < 10){
   # Initialise random starting point
   th0 <- rmvnorm(1,c(-1,1,1,0),diag(c(1,1,2,1)))
-  m1 <- try(optim(th0,nll,y=y,L=L,hessian = T,method="BFGS")) # 229.0827
-  if(typeof(m1) != "list") next  # Error handling: rmvnorm can pick a very bad starting point where nll is infinite
+  m1 <- try(optim(th0,nll,nll_,y=y,L=L,hessian = T,method="BFGS"),silent=T) # 229.0827
+  if(typeof(m1) != "list") next
+  if(is.na(m1$value)) next
+  # Error handling: rmvnorm can pick a very bad starting point where nll is infinite
   # when that happens R quits the loop. 
   # Instead, make R pick another (hopefully) better starting point
   if(m1$value < max_ll){
-    if(m1$value <= 0) next
+    if(m1$value < 227) next
     counter = 1
     th <- m1
     max_ll <- m1$value
@@ -82,7 +61,6 @@ while(counter < 10){
     counter = counter + 1
     print(c(counter,max_ll,m1$par))
   }
-  print(c(counter,th$value))
 }
 
 
@@ -95,7 +73,6 @@ sigma <- exp(th$par[2])
 k <- exp(th$par[3])
 nu <- th$par[4]
 k_ <- -1/k
-c <-  1/b
 
 xx <- seq(0,7,length.out = 100)
 col_list <- c("red","orange","green","purple")  # List of colours
