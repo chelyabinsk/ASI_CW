@@ -54,22 +54,29 @@ while(counter < 10){
   }
 }
 
+
+# Plot the data
 b <- exp(th$par[1])
 sigma <- exp(th$par[2])
 xi <- exp(th$par[3])/(1+exp(th$par[3]))
 
 xx <- seq(0,7,length.out = 100)
-val <- 50
-m <- mean(strength.data$strength[strength.data$length==val])
-m <- quantile(strength.data$strength[strength.data$length==val],c(0.25,0.5,0.75))
-L <- val
-y_ <- 1-exp(-L^(xi)*(xx/sigma)^(1/b))
-plot(xx,y_,type="o")
-lines(xx,rep(0.5,100))
-lines(xx,rep(0.25,100))
-lines(xx,rep(0.75,100))
-lines(rep(m[2],100),seq(0,0.5,length.out = 100))
-lines(rep(m[1],100),seq(0,0.25,length.out = 100))
-lines(rep(m[3],100),seq(0,0.75,length.out = 100))
+col_list <- c("red","orange","green","purple")  # List of colours
+loop_count <- 1  # Counter for the loop
+for(i in unique(s_data$length))
+{
+  m <- quantile(s_data$strength[s_data$length==i],seq(1,0,length.out = 100))
+  y_ <- exp(-i^(xi)*(xx/sigma)^(1/b))
+  if(i==1){
+    plot(xx,y_,type="l",col=col_list[loop_count],xlab="y (Stress in giga-pascals)",ylab=bquote(S[L](y)),main="Visual validation of the model")
+    points(as.vector(m),seq(0,1,length.out = 100),col=col_list[loop_count])
+  }
+  else{
+    lines(xx,y_,type="l",col=col_list[loop_count])
+    points(as.vector(m),seq(0,1,length.out = 100),col=col_list[loop_count])
+  }
+  loop_count <- loop_count + 1
+}
 
-
+legend('topright',c('Model','Data'),lty=c(1,NA),pch=c(NA,'o'),bg='white',ncol=1,col=c("black"))
+legend('topleft',c('Length = 1mm','Length = 10mm','Length = 20mm','Length = 50mm'),pch=15,bg='white',ncol=1,col=col_list)
