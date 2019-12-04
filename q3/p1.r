@@ -1,3 +1,4 @@
+
 s_data<-
   read.table(url("http://people.bath.ac.uk/kai21/ASI/CW2019/strength.txt"),header = TRUE)
 library(mvtnorm)
@@ -25,17 +26,14 @@ expr <- expression(
      
   
 )
-expr_ <- deriv(expr,c("th1","th2","th3"),function.arg=c("th1","th2","th3","y","L"),hessian = T)
+expr_ <- deriv(expr,c("th1","th2","th3","th4"),function.arg=c("th1","th2","th3","th4","y","L"),hessian = T)
 
 
 nll_ <- function(theta,y,L){
   # Gradient
-  res <- expr_(theta[1],theta[2],theta[3],y,L)
+  res <- expr_(theta[1],theta[2],theta[3],theta[4],y,L)
   apply(attr(res,"gradient"),2,sum)
 }
-
-
-
 
 
 
@@ -45,16 +43,18 @@ th <- c(0,0,0,0)
 while(counter < 10){
   # Initialise random starting point
   th0 <- rmvnorm(1,c(-1,1,1,0),diag(c(1,1,2,1)))
-  m1 <- try(optim(th0,nll,y=y,L=L,hessian = T,method="BFGS")) # 229.0827
+  m1 <- try(optim(th0,nll,gr=nll_,y=y,L=L,hessian = T,method="BFGS"),silent=T) # 227.567
+  #print(m1)
   if(typeof(m1) != "list") next  # Error handling: rmvnorm can pick a very bad starting point where nll is infinite
   # when that happens R quits the loop. 
   # Instead, make R pick another (hopefully) better starting point
+  #print(counter)
   if(m1$value < max_ll){
     counter = 1
-    th <- m1$par
+    th <- m1
     max_ll <- m1$value
     print(c(counter,m1$value,m1$par))
-  }else if(round(m1$value,8) == round(max_ll,8)){
+  }else if(round(m1$value,15) == round(max_ll,15)){
     counter = counter + 1
     print(c(counter,max_ll,m1$par))
   }
@@ -64,13 +64,13 @@ while(counter < 10){
 
 
 
-
+par(mfrow=c(1,1))
 
 # Plot the data
-eta <- exp(th[1])
-sigma <- exp(th[2])
-xi <- exp(th[3])/(1+exp(th[3]))
-tau <- th[4]
+eta <- exp(th$par[1])
+sigma <- exp(th$par[2])
+xi <- exp(th$par[3])/(1+exp(th$par[3]))
+tau <- th$par[4]
 
 
 xx <- seq(0,7,length.out = 100)
@@ -80,13 +80,13 @@ for(i in unique(s_data$length))
 {
   b <- eta*i^tau
   m <- quantile(s_data$strength[s_data$length==i],seq(1,0,length.out = 100))
-  y <- exp(-i^(xi)*(xx/sigma)^(b))
+  y_ <- exp(-i^(xi)*(xx/sigma)^(b))
   if(i==1){
-    plot(xx,y,type="l",col=col_list[loop_count],xlab="y (Stress in giga-pascals)",ylab=bquote(S[L](y)),main="Visual validation of the model")
+    plot(xx,y_,type="l",col=col_list[loop_count],xlab="y (Stress in giga-pascals)",ylab=bquote(S[L](y)),main="Visual validation of the model")
     points(as.vector(m),seq(0,1,length.out = 100),col=col_list[loop_count])
   }
   else{
-    lines(xx,y,type="l",col=col_list[loop_count])
+    lines(xx,y_,type="l",col=col_list[loop_count])
     points(as.vector(m),seq(0,1,length.out = 100),col=col_list[loop_count])
   }
   loop_count <- loop_count + 1
