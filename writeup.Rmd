@@ -1,6 +1,6 @@
 ---
 title: "project"
-author: "da best group"
+author: "Seva and others"
 date: "29/11/2019"
 output:
   pdf_document: default
@@ -10,6 +10,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+If I will be made to write the report I will leave this group.
 
 ## Question 1
 
@@ -19,3 +20,5 @@ Estimate of the var-covar is
              [,1]         [,2]
 [1,] 0.0010950811 0.0003872932
 [2,] 0.0003872932 0.0002617509
+
+
