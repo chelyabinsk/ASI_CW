@@ -21,7 +21,7 @@ log.likelihood<-function(theta,y,L){
   xi <- exp(theta[3])/(1+exp(theta[3]))
   S <- dweibull(y,shape = 1/b,scale = L^(-b*xi)*sigma,log = T)
   
-  sum(S[abs(S)!=Inf])
+  sum(S[abs(S)!=Inf],na.rm = T)
 }
 
 
@@ -55,7 +55,7 @@ posterior <- function(theta,y,L,test_mean){
 ##MH
 
 proposonalFunction <- function(theta,sigma.prop){
-  mvtnorm::rmvnorm(1,mean=theta,sigma=sigma.prop)
+  rmvnorm(1,mean=theta,sigma=sigma.prop)
 }
 
 run_metropolis_MCMC <- function(startvalue, iterations,y,L,sigma.prop,test_mean){
@@ -67,7 +67,12 @@ run_metropolis_MCMC <- function(startvalue, iterations,y,L,sigma.prop,test_mean)
     #print(exp(posterior(proposal,y,L,test_mean)))
     #break
     probab = exp(posterior(proposal,y,L,test_mean) - posterior(chain[i,],y,L,test_mean))
-    if(is.na(probab)) next
+    #print(posterior(proposal,y,L,test_mean))
+    if(is.na(probab)){
+      #break;
+      next;
+      
+      }
     if (runif(1) < probab){
       chain[i+1,] = proposal
     }else{
@@ -78,21 +83,21 @@ run_metropolis_MCMC <- function(startvalue, iterations,y,L,sigma.prop,test_mean)
 }
 
 ###############################################
-startvalue = c(-1,2,2)#-1.656665,1.536034,1.990463)
-sigma.prop = matrix(c(0,0,1,
-                      0,1,0,
-                      1,0,0), ncol=3)
-N <- 90000
-burnIn = N*0.9
+startvalue = c(-1,1.5,1.2)#-1.656665,1.536034,1.990463)
+sigma.prop = matrix(c(0.001,      0,            0.01,
+                      0,      1,            0,
+                      0.01,    0,            0.9), ncol=3)
+eigen(sigma.prop)
+chol(sigma.prop)
+
+N <- 120000
+burnIn = N*0.75
 
 test_mean = 3  # mu0>0 (fixed) second bullet point
 ################################################
 
-
-chain = run_metropolis_MCMC(startvalue, N,y,L,sigma.prop,test_mean)
-
-
-acceptance = 1-mean(duplicated(chain[-(1:burnIn),]))
+# Check that sigma.prop is positive definite
+vals <- eigen(sigma.prop)
 
 ## He said something about plotting log(xi) instead of just xi
 ## when checking for convergence
@@ -108,9 +113,33 @@ plot.mcmc<-function(mcmc.out)
   par(op)
 }
 
-plot.mcmc(chain[-(1:burnIn),1])
-plot.mcmc(chain[-(1:burnIn),2])
-plot.mcmc(chain[-(1:burnIn),3])
+plot.scatter <- function(mcmc.out){
+  par(mfrow=c(1,3))
+  #plot(chain[-(1:burnIn),1],chain[-(1:burnIn),2],xlab="Theta1",ylab="Theta2")
+  #plot(chain[-(1:burnIn),1],chain[-(1:burnIn),3],xlab="Theta1",ylab="Theta3")
+  #plot(chain[-(1:burnIn),2],chain[-(1:burnIn),3],xlab="Theta2",ylab="Theta3")
+  
+  plot(chain[,1],chain[,2],xlab="Theta1",ylab="Theta2")
+  plot(chain[,1],chain[,3],xlab="Theta1",ylab="Theta3")
+  plot(chain[,2],chain[,3],xlab="Theta2",ylab="Theta3")
+}
 
-acceptance
+if(! F %in% (vals$values > 0)){
+  chain = run_MCMC_cpp(startvalue,N,burnIn,y,L,sigma.prop,test_mean)#run_metropolis_MCMC(startvalue, N,y,L,sigma.prop,test_mean)
+  #system.time(schain <- run_MCMC_cpp(startvalue,N,burnIn,y,L,sigma.prop,test_mean))
+  #system.time(schain <- run_metropolis_MCMC(startvalue, N,y,L,sigma.prop,test_mean))
 
+  acceptance = 1-mean(duplicated(chain))
+
+  #plot.mcmc(chain[-(1:burnIn),1])
+  #plot.mcmc(chain[-(1:burnIn),2])
+  #plot.mcmc(chain[-(1:burnIn),3])
+  
+  plot.mcmc(chain[,1])
+  plot.mcmc(chain[,2])
+  plot.mcmc(chain[,3])
+  
+  plot.scatter()
+  
+  acceptance
+}else{print("sigma.prop isn't positive definite")}
