@@ -78,10 +78,10 @@ run_metropolis_MCMC <- function(startvalue, iterations,y,L,sigma.prop,test_mean)
 }
 
 ###############################################
-startvalue = c(-1.656665,1.536034,1.990463)
-sigma.prop = matrix(c(1,0,0,
+startvalue = c(-1,2,2)#-1.656665,1.536034,1.990463)
+sigma.prop = matrix(c(0,0,1,
                       0,1,0,
-                      0,0,1), ncol=3)
+                      1,0,0), ncol=3)
 N <- 90000
 burnIn = N*0.9
 
@@ -113,5 +113,4 @@ plot.mcmc(chain[-(1:burnIn),2])
 plot.mcmc(chain[-(1:burnIn),3])
 
 acceptance
-
 
