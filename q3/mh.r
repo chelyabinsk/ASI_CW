@@ -20,7 +20,7 @@ log.likelihood<-function(theta,y,L){
   xi <- exp(theta[3])/(1+exp(theta[3]))
   tau <- theta[4]
   b <- eta*L^tau
-  sum(dweibull(y,shape = b,scale = sigma*L^(-xi/b),log = T))
+  sum(dweibull(y,shape = b,scale = sigma*L^(-xi/b),log = T),na.rm = T)
 }
 
 sol <- c(1.70484974,1.53217965,2.03697199,-0.01393004)
@@ -59,10 +59,12 @@ posterior <- function(theta,y,L,test_mean){
   log.likelihood(theta,y,L) + log.prior(theta,y,L,test_mean)
 }
 
+#posterior(c(-0.7356172,2.852293,1.730333,-1.795238),y,L,test_mean)
+
 ##MH
 
 proposonalFunction <- function(theta,sigma.prop){
-  rnorm(4,mean=theta,sigma.prop)
+  mvtnorm::rmvnorm(1,mean=theta,sigma=sigma.prop)
 }
 
 
@@ -76,15 +78,13 @@ run_metropolis_MCMC <- function(startvalue, iterations,y,L,sigma.prop,test_mean)
     #print(exp(posterior(proposal,y,L,test_mean)))
     #break
     probab = exp(posterior(proposal,y,L,test_mean) - posterior(chain[i,],y,L,test_mean))
-    
-    if(is.na(probab)) next
+    #print(proposal)
+    if(is.na(probab)){next}
     if (runif(1) < probab){
       chain[i+1,] = proposal
     }else{
       chain[i+1,] = chain[i,]
     }
-    #if(i==200)
-    #  break
   }
   return(chain)
 }
@@ -92,7 +92,10 @@ run_metropolis_MCMC <- function(startvalue, iterations,y,L,sigma.prop,test_mean)
 #########################################################################
 # 1.70484974   1.53217965   2.03697199  -0.01393004
 startvalue = c(1.70484974,1.53217965,2.03697199,-0.01393004)
-sigma.prop = c(0.01,0.05,0.1,0.01)
+sigma.prop = matrix(c(1,0,0,0,
+                      0,1,0,0,
+                      0,0,1,0,
+                      0,0,0,1), ncol=4)
 test_mean = c(3,200)
 N <- 50000
 burnIn = N*0.75
