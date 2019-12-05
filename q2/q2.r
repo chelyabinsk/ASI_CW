@@ -1,6 +1,6 @@
 # https://www.rdocumentation.org/packages/hydroApps/versions/0.1-1/topics/pBurrXII
 
-set.seet(23121)
+set.seet(23151)
 strength.data<-
   read.table(url("http://people.bath.ac.uk/kai21/ASI/CW2019/strength.txt"),header = TRUE)
 library(mvtnorm)
