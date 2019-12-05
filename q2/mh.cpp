@@ -81,12 +81,17 @@ arma::mat run_MCMC_cpp(arma::vec startValue,
   out2(0,2) = startValue(2);
   
   arma::mat update_dummy;
-  double probab,uni;
+  double probab,uni,percent;
   for(unsigned int i=0; i< iterations; i++){
     update_dummy = mvrnormArma(1, startValue, sigma_prop);
     probab = exp(posterior_cpp(update_dummy,y,L,test_mean) - posterior_cpp(out2,y,L,test_mean));
     
     if(ISNAN(probab)){continue;}
+    
+    if(i % 1000 == 0){
+      percent = (1.0*i)/(1.0*iterations)*100.0;
+      cout << "i : " << i << " : " << percent << endl;  
+    }
     
     uni = ::Rf_runif (0, 1);
     
