@@ -64,7 +64,7 @@ posterior <- function(theta,y,L,test_mean){
 ##MH
 
 proposonalFunction <- function(theta,sigma.prop){
-  rnorm(4,mean=theta,sigma.prop)
+  mvtnorm::rmvnorm(1,mean=theta,sigma=sigma.prop)
 }
 
 
@@ -91,7 +91,10 @@ run_metropolis_MCMC <- function(startvalue, iterations,y,L,sigma.prop,test_mean)
 #################################################
 # -1.5116566   1.5887773  -2.2711463  -0.1815788
 startvalue = c(-1,1,-2,0)
-sigma.prop = c(0.1,0.3,0.1,0.1)
+sigma.prop = matrix(c(1,0,0,0,
+                      0,1,0,0,
+                      0,0,1,0,
+                      0,0,0,1), ncol=4)
 N <- 80000
 burnIn = N*0.75
 
