@@ -1,6 +1,7 @@
 #https://theoreticalecology.wordpress.com/2010/09/17/metropolis-hastings-mcmc-in-r/
 
 set.seed(42)
+library(mvtnorm)
 # Second part of the second question
 strength.data<-
   read.table(url("http://people.bath.ac.uk/kai21/ASI/CW2019/strength.txt"),header = TRUE)
@@ -54,7 +55,7 @@ posterior <- function(theta,y,L,test_mean){
 ##MH
 
 proposonalFunction <- function(theta,sigma.prop){
-  rnorm(3,mean=theta,sigma.prop)
+  mvtnorm::rmvnorm(1,mean=theta,sigma=sigma.prop)
 }
 
 run_metropolis_MCMC <- function(startvalue, iterations,y,L,sigma.prop,test_mean){
@@ -77,11 +78,14 @@ run_metropolis_MCMC <- function(startvalue, iterations,y,L,sigma.prop,test_mean)
 }
 
 ###############################################
-startvalue = c(-1,0,1)
-sigma.prop = c(0.01,0.08,0.25)
-test_mean = 3  # mu0>0 (fixed) second bullet point
+startvalue = c(-1.656665,1.536034,1.990463)
+sigma.prop = matrix(c(1,0,0,
+                      0,1,0,
+                      0,0,1), ncol=3)
 N <- 90000
 burnIn = N*0.9
+
+test_mean = 3  # mu0>0 (fixed) second bullet point
 ################################################
 
 
@@ -109,3 +113,5 @@ plot.mcmc(chain[-(1:burnIn),2])
 plot.mcmc(chain[-(1:burnIn),3])
 
 acceptance
+
+
