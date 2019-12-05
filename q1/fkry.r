@@ -1,4 +1,5 @@
 set.seed(1230)  # Reproducibility
+library(mvtnorm)
 s_data <-
   read.table(url("http://people.bath.ac.uk/kai21/ASI/CW2019/strength.txt"),header = TRUE)
 
